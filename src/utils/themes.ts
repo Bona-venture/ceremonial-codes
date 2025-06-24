@@ -18,7 +18,7 @@ export const themes: Theme[] = [
     primary: '#d4a574',
     secondary: '#f5f5dc',
     accent: '#8b7355',
-    background: '#faf8f3',
+    background: '#8f826b',
     text: '#2d2d2d',
     cardBg: '#ffffff'
   },
