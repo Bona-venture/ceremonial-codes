@@ -15,7 +15,6 @@ import {
   AppState
 } from '../types';
 import { toast } from 'react-toastify';
-import { getThemeById, applyTheme } from '../utils/themes';
 
 const defaultSettings: Settings = {
   coupleNames: "Bonaventure & Joy",
