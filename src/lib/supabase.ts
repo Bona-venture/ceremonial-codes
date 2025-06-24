@@ -4,15 +4,19 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Provide fallback values for development if environment variables are not set
-const defaultUrl = supabaseUrl || 'https://placeholder.supabase.co'
-const defaultKey = supabaseKey || 'placeholder-key'
+const defaultUrl = 'https://placeholder.supabase.co'
+const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder'
+
+// Use fallback if env vars are missing or invalid
+const finalUrl = supabaseUrl && supabaseUrl !== 'your_supabase_project_url_here' ? supabaseUrl : defaultUrl
+const finalKey = supabaseKey && supabaseKey !== 'your_supabase_anon_key_here' ? supabaseKey : defaultKey
 
 // Only show warning in development
-if (!supabaseUrl || !supabaseKey) {
+if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_project_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
   console.warn('⚠️ Supabase environment variables not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.')
 }
 
-export const supabase = createClient(defaultUrl, defaultKey)
+export const supabase = createClient(finalUrl, finalKey)
 
 // Database schema for wedding portal
 export interface Database {
