@@ -7,7 +7,7 @@ export const themes: Theme[] = [
     primary: '#e11d48',
     secondary: '#fdf2f8',
     accent: '#be185d',
-    background: '#8f826b',
+    background: 'linear-gradient(135deg, #fdf8f5 0%, #fef2f2 100%)',
     text: '#4a4a4a',
     cardBg: '#ffffff',
     isGradient: true
@@ -18,7 +18,7 @@ export const themes: Theme[] = [
     primary: '#d4a574',
     secondary: '#f5f5dc',
     accent: '#8b7355',
-    background: '#8f826b',
+    background: '#faf8f3',
     text: '#2d2d2d',
     cardBg: '#ffffff'
   },
@@ -28,7 +28,7 @@ export const themes: Theme[] = [
     primary: '#7c3aed',
     secondary: '#f3e8ff',
     accent: '#5b21b6',
-    background: 'linear-gradient(135deg, #faf7ff 0%, #f3e8ff 100%)',
+    background: 'linear-gradient(135deg, #faf7ff 0%, #a27dc9 100%)',
     text: '#374151',
     cardBg: '#ffffff',
     isGradient: true
