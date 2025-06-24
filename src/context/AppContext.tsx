@@ -15,17 +15,18 @@ import {
   AppState
 } from '../types';
 import { toast } from 'react-toastify';
+import { getThemeById, applyTheme } from '../utils/themes';
 
 const defaultSettings: Settings = {
   coupleNames: "Bonaventure & Joy",
-  eventDate: "2024-06-15T11:00",
-  venue: "Grand Ballroom, Royal Hotel",
-  maxSeats: 300,
-  seatsPerTable: 10,
-  welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  welcomeImages: [],
-  backgroundImages: [],
-  theme: "classic-rose"
+eventDate: "2024-06-15T11:00",
+venue: "Grand Ballroom, Royal Hotel",
+maxSeats: 300,
+seatsPerTable: 10,
+welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+welcomeImages: [],
+backgroundImages: [],
+theme: "classic-rose"
 };
 
 const defaultPaymentDetails: PaymentDetails = {
@@ -181,6 +182,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshData();
   }, []);
 
+  // Add theme application effect here
+  useEffect(() => {
+    const themeId = state.settings.theme || 'classic-rose';
+    const theme = getThemeById(themeId);
+    applyTheme(theme);
+  }, [state.settings.theme]);
+  
   const login = async (code: string): Promise<boolean> => {
     const upperCode = code.trim().toUpperCase();
     if (state.accessCodes.includes(upperCode)) {
