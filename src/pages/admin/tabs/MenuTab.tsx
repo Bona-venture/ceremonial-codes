@@ -122,7 +122,7 @@ const MenuTab: React.FC = () => {
               key={index} 
               className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="aspect-square overflow-hidden">
+              <div className="aspect-square overflow-hidden md:h-64">
                 <img 
                   src={item.imageUrl} 
                   alt={item.name} 

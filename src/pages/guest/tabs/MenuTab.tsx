@@ -12,14 +12,18 @@ const MenuTab: React.FC = () => {
   const guestCategory = guest?.category || 'regular';
   
   // Filter menu items based on guest category
-  const getAvailableItems = (items: any[], itemGuestCategory: string) => {
-    if (guestCategory === 'family') return items; // Family can access all
-    if (guestCategory === 'premium') return items.filter(item => item.guestCategory === 'regular' || item.guestCategory === 'premium');
-    return items.filter(item => item.guestCategory === 'regular'); // Regular only gets regular
+  const getAvailableItems = (items: any[]) => {
+    return items.filter(item => {
+      const itemGuestCategory = item.guestCategory || 'regular';
+      
+      if (guestCategory === 'family') return true; // Family can access all
+      if (guestCategory === 'premium') return itemGuestCategory === 'regular' || itemGuestCategory === 'premium';
+      return itemGuestCategory === 'regular'; // Regular only gets regular
+    });
   };
   
-  const availableFoodItems = getAvailableItems(state.foodMenu, guestCategory);
-  const availableDrinkItems = getAvailableItems(state.drinkMenu, guestCategory);
+  const availableFoodItems = getAvailableItems(state.foodMenu);
+  const availableDrinkItems = getAvailableItems(state.drinkMenu);
   
   const handleSelectFood = (foodName: string) => {
     updateGuestFood(guestCode, foodName);

@@ -1,16 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
-import { themes, applyTheme } from '../../../utils/themes';
+import { themes, applyTheme, getThemeById } from '../../../utils/themes';
 import { toast } from 'react-toastify';
 
 const ThemeTab: React.FC = () => {
   const { state, updateSettings } = useAppContext();
 
-  const handleThemeChange = (themeId: string) => {
+  // Apply the current theme on component mount
+  useEffect(() => {
+    const currentTheme = getThemeById(state.settings.theme || 'classic-rose');
+    applyTheme(currentTheme);
+  }, [state.settings.theme]);
+
+  const handleThemeChange = async (themeId: string) => {
     const selectedTheme = themes.find(theme => theme.id === themeId);
     if (selectedTheme) {
+      // Apply theme immediately
       applyTheme(selectedTheme);
-      updateSettings({ theme: themeId });
+      
+      // Save to database
+      await updateSettings({ theme: themeId });
+      
       toast.success(`Theme changed to ${selectedTheme.name}`);
     }
   };
