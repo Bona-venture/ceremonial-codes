@@ -28,7 +28,7 @@ export const themes: Theme[] = [
     primary: '#7c3aed',
     secondary: '#f3e8ff',
     accent: '#5b21b6',
-    background: 'linear-gradient(135deg, #faf7ff 0%, #a27dc9 100%)',
+    background: 'linear-gradient(135deg, #faf7ff 0%, #966fbf 100%)',
     text: '#374151',
     cardBg: '#ffffff',
     isGradient: true
