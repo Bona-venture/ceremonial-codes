@@ -3,7 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Provide fallback values for development if environment variables are not set
+const defaultUrl = 'https://placeholder.supabase.co'
+const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder'
+
+// Use fallback if env vars are missing or invalid
+const finalUrl = supabaseUrl && supabaseUrl !== 'your_supabase_project_url_here' ? supabaseUrl : defaultUrl
+const finalKey = supabaseKey && supabaseKey !== 'your_supabase_anon_key_here' ? supabaseKey : defaultKey
+
+// Only show warning in development
+if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_project_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
+  console.warn('⚠️ Supabase environment variables not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.')
+}
+
+export const supabase = createClient(finalUrl, finalKey)
 
 // Database schema for wedding portal
 export interface Database {
@@ -16,7 +29,11 @@ export interface Database {
           event_date: string
           venue: string
           max_seats: number
+          seats_per_table: number
           welcome_image: string | null
+          welcome_images: any
+          background_images: any
+          theme: string
           created_at: string
           updated_at: string
         }
@@ -25,14 +42,22 @@ export interface Database {
           event_date: string
           venue: string
           max_seats?: number
+          seats_per_table?: number
           welcome_image?: string | null
+          welcome_images?: any
+          background_images?: any
+          theme?: string
         }
         Update: {
           couple_names?: string
           event_date?: string
           venue?: string
           max_seats?: number
+          seats_per_table?: number
           welcome_image?: string | null
+          welcome_images?: any
+          background_images?: any
+          theme?: string
         }
       }
       guests: {
@@ -95,6 +120,7 @@ export interface Database {
           description: string
           image_url: string
           category: 'main' | 'appetizer' | 'dessert'
+          guest_category: string
           created_at: string
         }
         Insert: {
@@ -102,12 +128,14 @@ export interface Database {
           description: string
           image_url: string
           category: 'main' | 'appetizer' | 'dessert'
+          guest_category?: string
         }
         Update: {
           name?: string
           description?: string
           image_url?: string
           category?: 'main' | 'appetizer' | 'dessert'
+          guest_category?: string
         }
       }
       drink_menu: {
@@ -117,6 +145,7 @@ export interface Database {
           description: string
           image_url: string
           category: 'alcoholic' | 'non-alcoholic' | 'water'
+          guest_category: string
           created_at: string
         }
         Insert: {
@@ -124,12 +153,14 @@ export interface Database {
           description: string
           image_url: string
           category: 'alcoholic' | 'non-alcoholic' | 'water'
+          guest_category?: string
         }
         Update: {
           name?: string
           description?: string
           image_url?: string
           category?: 'alcoholic' | 'non-alcoholic' | 'water'
+          guest_category?: string
         }
       }
       asoebi_items: {
@@ -139,6 +170,7 @@ export interface Database {
           description: string
           image_url: string
           price: number
+          currency: string
           gender: 'male' | 'female' | 'unisex'
           created_at: string
         }
@@ -147,6 +179,7 @@ export interface Database {
           description: string
           image_url: string
           price: number
+          currency?: string
           gender: 'male' | 'female' | 'unisex'
         }
         Update: {
@@ -154,6 +187,7 @@ export interface Database {
           description?: string
           image_url?: string
           price?: number
+          currency?: string
           gender?: 'male' | 'female' | 'unisex'
         }
       }
@@ -164,6 +198,7 @@ export interface Database {
           description: string
           image_url: string
           price: number
+          currency: string
           link: string
           created_at: string
         }
@@ -172,6 +207,7 @@ export interface Database {
           description: string
           image_url: string
           price: number
+          currency?: string
           link: string
         }
         Update: {
@@ -179,6 +215,7 @@ export interface Database {
           description?: string
           image_url?: string
           price?: number
+          currency?: string
           link?: string
         }
       }

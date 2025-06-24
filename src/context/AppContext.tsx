@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
+import { applyTheme, getThemeById } from '../utils/themes';
 import { 
   Settings, 
   Guest, 
@@ -18,11 +19,14 @@ import { getThemeById, applyTheme } from '../utils/themes';
 
 const defaultSettings: Settings = {
   coupleNames: "Bonaventure & Joy",
-  eventDate: "2024-06-15T11:00",
-  venue: "Grand Ballroom, Royal Hotel",
-  maxSeats: 300,
-  welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-  theme: "classic-rose"
+eventDate: "2024-06-15T11:00",
+venue: "Grand Ballroom, Royal Hotel",
+maxSeats: 300,
+seatsPerTable: 10,
+welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+welcomeImages: [],
+backgroundImages: [],
+theme: "classic-rose"
 };
 
 const defaultPaymentDetails: PaymentDetails = {
@@ -44,7 +48,8 @@ const initialState: AppState = {
   seats: {},
   accessCodes: ['ADMIN'],
   currentUser: null,
-  weddingParty: []
+  weddingParty: [],
+  currentTheme: getThemeById('classic-rose')
 };
 
 const AppContext = createContext<{
@@ -143,8 +148,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       }
 
+      const finalSettings = settings || defaultSettings;
+      
+      // Apply theme
+      const currentTheme = getThemeById(finalSettings.theme || 'classic-rose');
+      applyTheme(currentTheme);
+
       setState({
-        settings: settings || defaultSettings,
+        settings: finalSettings,
         gallery: gallery || [],
         foodMenu: foodMenu || [],
         drinkMenu: drinkMenu || [],
@@ -155,7 +166,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         seats,
         accessCodes: Object.keys(guests || { 'ADMIN': {} }),
         currentUser: null,
-        weddingParty: weddingParty || []
+        weddingParty: weddingParty || [],
+        currentTheme
       });
     } catch (error) {
       console.error('Error loading data:', error);
@@ -335,13 +347,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateSettings = async (newSettings: Partial<Settings>) => {
     const success = await supabase.updateSettings(newSettings);
     if (success) {
-      setState(prev => ({
-        ...prev,
-        settings: {
+      setState(prev => {
+        const updatedSettings = {
           ...prev.settings,
           ...newSettings
+        };
+        
+        // Apply theme if it was updated
+        if (newSettings.theme) {
+          const newTheme = getThemeById(newSettings.theme);
+          applyTheme(newTheme);
+          return {
+            ...prev,
+            settings: updatedSettings,
+            currentTheme: newTheme
+          };
         }
-      }));
+        
+        return {
+          ...prev,
+          settings: updatedSettings
+        };
+      });
     }
   };
 
