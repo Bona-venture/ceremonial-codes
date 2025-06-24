@@ -7,7 +7,7 @@ export const themes: Theme[] = [
     primary: '#e11d48',
     secondary: '#fdf2f8',
     accent: '#be185d',
-    background: 'linear-gradient(135deg, #fdf8f5 0%, #fef2f2 100%)',
+    background: '#8f826b',
     text: '#4a4a4a',
     cardBg: '#ffffff',
     isGradient: true
