@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CountdownTimer from '../components/common/CountdownTimer';
 import { useAppContext } from '../context/AppContext';
+import { isSupabaseReady } from '../lib/supabase';
 
 const LoginScreen: React.FC = () => {
   const [accessCode, setAccessCode] = useState('');
@@ -56,6 +57,13 @@ const LoginScreen: React.FC = () => {
         </h1>
         <p className="text-center mb-6 text-theme-text">Welcome to our wedding celebration portal</p>
         
+        {!isSupabaseReady && (
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
+            <p className="font-semibold">Demo Mode</p>
+            <p>Database not connected. Using local storage for demonstration.</p>
+          </div>
+        )}
+        
         <div className="mb-8">
           <CountdownTimer targetDate={state.settings.eventDate} />
         </div>
@@ -73,7 +81,12 @@ const LoginScreen: React.FC = () => {
             placeholder="Enter access code"
             maxLength={5}
           />
-          <p className="mt-2 text-sm text-theme-text">access code was sent with your I.V </p>
+          <p className="mt-2 text-sm text-theme-text">
+            {isSupabaseReady 
+              ? "Access code was sent with your invitation" 
+              : "Try 'ADMIN' for admin panel or any 5-letter code for guest view"
+            }
+          </p>
         </div>
         
         <button
