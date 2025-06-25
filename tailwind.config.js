@@ -52,6 +52,9 @@ export default {
           '100%': { boxShadow: '0 0 0 0 rgba(253, 253, 150, 0)' },
         },
       },
+      backgroundImage: {
+        'theme-gradient': 'var(--color-background)',
+      },
     },
   },
   plugins: [],

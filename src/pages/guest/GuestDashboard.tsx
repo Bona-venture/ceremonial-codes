@@ -83,7 +83,7 @@ const GuestDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
       <header className="bg-theme-primary text-theme-text-inverse py-5">
         <div className="container mx-auto text-center px-5">
           <h1 className="text-4xl md:text-5xl font-dancing mb-2">{state.settings.coupleNames}</h1>

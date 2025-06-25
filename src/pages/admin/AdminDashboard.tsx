@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--color-background)' }}>
       <header className="bg-theme-primary text-theme-text-inverse p-5 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-dancing">Admin Dashboard</h1>
