@@ -41,17 +41,17 @@ const AdminDashboard: React.FC = () => {
   // Determine active tab
   const getActiveTab = (path: string) => {
     const currentPath = location.pathname;
-    return currentPath.includes(path) ? 'bg-rose-100 text-rose-700' : 'hover:bg-rose-50 hover:text-rose-600';
+    return currentPath.includes(path) ? 'bg-theme-secondary text-theme-primary' : 'hover:bg-theme-secondary hover:text-theme-primary';
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-rose-600 text-white p-5 shadow-md">
+      <header className="bg-theme-primary text-theme-text-inverse p-5 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-dancing">Admin Dashboard</h1>
           <button 
             onClick={handleLogout}
-            className="px-4 py-2 bg-white text-rose-600 rounded-lg hover:bg-gray-100 transition duration-300 shadow-sm"
+            className="px-4 py-2 bg-theme-card-bg text-theme-primary rounded-lg hover:bg-gray-100 transition duration-300 shadow-sm"
           >
             Logout
           </button>

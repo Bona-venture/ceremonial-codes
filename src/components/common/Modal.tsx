@@ -40,10 +40,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300">
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all duration-300"
+        className="bg-theme-card-bg rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all duration-300"
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-xl font-semibold text-theme-text">{title}</h3>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition duration-150"

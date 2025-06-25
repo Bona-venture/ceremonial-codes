@@ -23,7 +23,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({
       {filteredItems.map((item, index) => (
         <div 
           key={index} 
-          className="bg-white rounded-lg overflow-hidden shadow-md menu-item hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+          className="bg-theme-card-bg rounded-lg overflow-hidden shadow-md menu-item hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
         >
           <div className="aspect-square overflow-hidden">
             <img 
@@ -33,13 +33,13 @@ const MenuItems: React.FC<MenuItemsProps> = ({
             />
           </div>
           <div className="p-3">
-            <h3 className="font-semibold mb-1 text-gray-800 text-sm">{item.name}</h3>
-            <p className="text-gray-600 mb-3 text-xs line-clamp-2">{item.description}</p>
+            <h3 className="font-semibold mb-1 text-theme-text text-sm">{item.name}</h3>
+            <p className="text-theme-text mb-3 text-xs line-clamp-2">{item.description}</p>
             
             {onSelect && !isAdmin && (
               <button 
                 onClick={() => onSelect(item.name)} 
-                className="w-full px-3 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition duration-300 text-xs"
+                className="w-full px-3 py-2 bg-theme-primary text-theme-button-text rounded-lg hover:bg-theme-accent transition duration-300 text-xs"
               >
                 Select
               </button>

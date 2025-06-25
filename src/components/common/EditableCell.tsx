@@ -60,7 +60,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={handleSave}
           onKeyDown={handleKeyPress}
-          className={`w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-rose-300 ${className}`}
+          className={`w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-theme-accent ${className}`}
         >
           {options.map((option) => (
             <option key={option} value={option}>
@@ -79,7 +79,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
         onChange={(e) => setEditValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyPress}
-        className={`w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-rose-300 ${className}`}
+        className={`w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-theme-accent ${className}`}
       />
     );
   }

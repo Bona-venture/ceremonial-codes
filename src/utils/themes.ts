@@ -35,6 +35,8 @@ export const themes: Theme[] = [
     accent: '#5b21b6',
     background: 'linear-gradient(135deg, #faf7ff 0%, #f3e8ff 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -46,6 +48,8 @@ export const themes: Theme[] = [
     accent: '#047857',
     background: '#f0fdf4',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -56,6 +60,8 @@ export const themes: Theme[] = [
     accent: '#d97706',
     background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -67,6 +73,8 @@ export const themes: Theme[] = [
     accent: '#0284c7',
     background: '#f8fafc',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -77,6 +85,8 @@ export const themes: Theme[] = [
     accent: '#db2777',
     background: 'linear-gradient(135deg, #fef7f7 0%, #fdf2f8 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -88,6 +98,8 @@ export const themes: Theme[] = [
     accent: '#65a30d',
     background: '#f9fafb',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -98,6 +110,8 @@ export const themes: Theme[] = [
     accent: '#9333ea',
     background: 'linear-gradient(135deg, #fefbff 0%, #faf5ff 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -109,6 +123,8 @@ export const themes: Theme[] = [
     accent: '#ea580c',
     background: '#fffbf5',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -119,6 +135,8 @@ export const themes: Theme[] = [
     accent: '#1d4ed8',
     background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -130,6 +148,8 @@ export const themes: Theme[] = [
     accent: '#ca8a04',
     background: '#fffef0',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -140,6 +160,8 @@ export const themes: Theme[] = [
     accent: '#e11d48',
     background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   },
@@ -151,6 +173,8 @@ export const themes: Theme[] = [
     accent: '#15803d',
     background: '#f7fef7',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff'
   },
   {
@@ -161,6 +185,8 @@ export const themes: Theme[] = [
     accent: '#7f1d1d',
     background: 'linear-gradient(135deg, #fefefe 0%, #fef2f2 100%)',
     text: '#374151',
+    'text-inverse': '#ffffff',
+    'button-text': '#ffffff',
     cardBg: '#ffffff',
     isGradient: true
   }
@@ -181,12 +207,13 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty('--color-text-inverse', theme['text-inverse'] || '#ffffff');
   root.style.setProperty('--color-button-text', theme['button-text'] || '#ffffff');
   root.style.setProperty('--color-card-bg', theme.cardBg);
-  root.style.setProperty('--color-background', theme.background);
-
-  // Apply background (gradient or solid)
+  
+  // Set background variable for consistency
   if (theme.isGradient && theme.gradient) {
+    root.style.setProperty('--color-background', theme.gradient);
     document.body.style.background = theme.gradient;
   } else {
+    root.style.setProperty('--color-background', theme.background);
     document.body.style.background = 'none';
     document.body.style.backgroundColor = theme.background;
   }
