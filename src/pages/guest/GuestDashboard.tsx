@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 
@@ -17,6 +17,7 @@ const GuestDashboard: React.FC = () => {
   const { state, logout } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Redirect to login if not logged in or is admin
@@ -29,6 +30,40 @@ const GuestDashboard: React.FC = () => {
       navigate('/guest/welcome');
     }
   }, [state.currentUser, navigate, location.pathname]);
+
+  // Auto-scroll animation for navigation in responsive mode
+  useEffect(() => {
+    const autoScrollNav = () => {
+      if (navRef.current) {
+        const navElement = navRef.current;
+        const isScrollable = navElement.scrollWidth > navElement.clientWidth;
+        
+        if (isScrollable) {
+          // Wait a moment after page load
+          setTimeout(() => {
+            // Scroll right slowly
+            navElement.scrollTo({
+              left: 120,
+              behavior: 'smooth'
+            });
+            
+            // Then scroll back to start
+            setTimeout(() => {
+              navElement.scrollTo({
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 1500);
+          }, 1000);
+        }
+      }
+    };
+
+    // Only run auto-scroll on initial load
+    if (state.currentUser && state.currentUser !== 'ADMIN') {
+      autoScrollNav();
+    }
+  }, [state.currentUser, location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -63,7 +98,10 @@ const GuestDashboard: React.FC = () => {
       
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-5">
-          <div className="flex overflow-x-auto py-4 no-scrollbar">
+          <div 
+            ref={navRef}
+            className="flex overflow-x-auto py-4 no-scrollbar scroll-smooth"
+          >
             <Link 
               to="/guest/welcome" 
               className={`whitespace-nowrap px-4 py-2 mx-2 rounded-full transition duration-300 ${getActiveTab('welcome')}`}
