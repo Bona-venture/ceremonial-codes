@@ -16,7 +16,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
   const { seats, guests, settings } = state;
 
   return (
-    <div className="border p-4 rounded-lg bg-gray-50 min-h-[200px] flex flex-wrap justify-center">
+    <div className="border p-4 rounded-lg bg-theme-background min-h-[200px] flex flex-wrap justify-center">
       {[...Array(settings.maxSeats)].map((_, index) => {
         const seatNumber = index + 1;
         const seat = seats[seatNumber];

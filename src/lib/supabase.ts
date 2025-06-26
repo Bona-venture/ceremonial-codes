@@ -3,20 +3,30 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Provide fallback values for development if environment variables are not set
+// Check if environment variables are properly set
+const isSupabaseConfigured = supabaseUrl && 
+  supabaseKey && 
+  supabaseUrl !== 'your_supabase_project_url_here' && 
+  supabaseKey !== 'your_supabase_anon_key_here' &&
+  supabaseUrl.includes('supabase.co')
+
+if (!isSupabaseConfigured) {
+  console.warn('⚠️ Supabase not configured. Using local storage fallback mode.')
+  console.warn('To enable database features, please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.')
+}
+
+// Use fallback values for development if environment variables are not set
 const defaultUrl = 'https://placeholder.supabase.co'
 const defaultKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder'
 
-// Use fallback if env vars are missing or invalid
-const finalUrl = supabaseUrl && supabaseUrl !== 'your_supabase_project_url_here' ? supabaseUrl : defaultUrl
-const finalKey = supabaseKey && supabaseKey !== 'your_supabase_anon_key_here' ? supabaseKey : defaultKey
-
-// Only show warning in development
-if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_project_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
-  console.warn('⚠️ Supabase environment variables not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.')
-}
+// Use real values if configured, otherwise fallback
+const finalUrl = isSupabaseConfigured ? supabaseUrl : defaultUrl
+const finalKey = isSupabaseConfigured ? supabaseKey : defaultKey
 
 export const supabase = createClient(finalUrl, finalKey)
+
+// Export configuration status for use in components
+export const isSupabaseReady = isSupabaseConfigured
 
 // Database schema for wedding portal
 export interface Database {

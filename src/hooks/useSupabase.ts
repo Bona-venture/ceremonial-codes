@@ -37,7 +37,11 @@ export const useSupabase = () => {
         eventDate: settingsData.event_date,
         venue: settingsData.venue,
         maxSeats: settingsData.max_seats,
-        welcomeImage: settingsData.welcome_image
+        seatsPerTable: settingsData.seats_per_table || 10,
+        welcomeImage: settingsData.welcome_image,
+        welcomeImages: settingsData.welcome_images || [],
+        backgroundImages: settingsData.background_images || [],
+        theme: settingsData.theme || 'classic-rose'
       };
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -65,22 +69,33 @@ export const useSupabase = () => {
             event_date: settings.eventDate || new Date().toISOString(),
             venue: settings.venue || '',
             max_seats: settings.maxSeats || 300,
-            welcome_image: settings.welcomeImage || null
+            seats_per_table: settings.seatsPerTable || 10,
+            welcome_image: settings.welcomeImage || null,
+            welcome_images: settings.welcomeImages || [],
+            background_images: settings.backgroundImages || [],
+            theme: settings.theme || 'classic-rose'
           });
         
         if (error) throw error;
       } else {
         // Update existing settings
+        const updateData: any = {
+          updated_at: new Date().toISOString()
+        };
+        
+        if (settings.coupleNames !== undefined) updateData.couple_names = settings.coupleNames;
+        if (settings.eventDate !== undefined) updateData.event_date = settings.eventDate;
+        if (settings.venue !== undefined) updateData.venue = settings.venue;
+        if (settings.maxSeats !== undefined) updateData.max_seats = settings.maxSeats;
+        if (settings.seatsPerTable !== undefined) updateData.seats_per_table = settings.seatsPerTable;
+        if (settings.welcomeImage !== undefined) updateData.welcome_image = settings.welcomeImage;
+        if (settings.welcomeImages !== undefined) updateData.welcome_images = settings.welcomeImages;
+        if (settings.backgroundImages !== undefined) updateData.background_images = settings.backgroundImages;
+        if (settings.theme !== undefined) updateData.theme = settings.theme;
+        
         const { error } = await supabase
           .from('settings')
-          .update({
-            couple_names: settings.coupleNames,
-            event_date: settings.eventDate,
-            venue: settings.venue,
-            max_seats: settings.maxSeats,
-            welcome_image: settings.welcomeImage,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', existingData[0].id);
         
         if (error) throw error;
@@ -178,7 +193,8 @@ export const useSupabase = () => {
       
       return data.map(item => ({
         title: item.title,
-        imageUrl: item.image_url
+        imageUrl: item.image_url,
+        type: 'image' // Default to image for existing data
       }));
     } catch (err) {
       console.error('Error fetching gallery:', err);
@@ -244,7 +260,8 @@ export const useSupabase = () => {
         name: item.name,
         description: item.description,
         imageUrl: item.image_url,
-        category: item.category as 'main' | 'appetizer' | 'dessert'
+        category: item.category as 'main' | 'appetizer' | 'dessert',
+        guestCategory: item.guest_category as 'regular' | 'premium' | 'family' || 'regular'
       }));
     } catch (err) {
       console.error('Error fetching food menu:', err);
@@ -260,7 +277,8 @@ export const useSupabase = () => {
           name: item.name,
           description: item.description,
           image_url: item.imageUrl,
-          category: item.category
+          category: item.category,
+          guest_category: item.guestCategory
         });
       
       if (error) throw error;
@@ -311,7 +329,8 @@ export const useSupabase = () => {
         name: item.name,
         description: item.description,
         imageUrl: item.image_url,
-        category: item.category as 'alcoholic' | 'non-alcoholic' | 'water'
+        category: item.category as 'alcoholic' | 'non-alcoholic' | 'water',
+        guestCategory: item.guest_category as 'regular' | 'premium' | 'family' || 'regular'
       }));
     } catch (err) {
       console.error('Error fetching drink menu:', err);
@@ -327,7 +346,8 @@ export const useSupabase = () => {
           name: item.name,
           description: item.description,
           image_url: item.imageUrl,
-          category: item.category
+          category: item.category,
+          guest_category: item.guestCategory
         });
       
       if (error) throw error;
@@ -379,6 +399,7 @@ export const useSupabase = () => {
         description: item.description,
         imageUrl: item.image_url,
         price: parseFloat(item.price.toString()),
+        currency: item.currency as 'NGN' | 'USD' | 'GBP' | 'EUR' || 'NGN',
         gender: item.gender as 'male' | 'female' | 'unisex'
       }));
     } catch (err) {
@@ -396,6 +417,7 @@ export const useSupabase = () => {
           description: item.description,
           image_url: item.imageUrl,
           price: item.price,
+          currency: item.currency,
           gender: item.gender
         });
       
@@ -448,6 +470,7 @@ export const useSupabase = () => {
         description: item.description,
         imageUrl: item.image_url,
         price: parseFloat(item.price.toString()),
+        currency: item.currency as 'NGN' | 'USD' | 'GBP' | 'EUR' || 'NGN',
         link: item.link
       }));
     } catch (err) {
@@ -465,6 +488,7 @@ export const useSupabase = () => {
           description: item.description,
           image_url: item.imageUrl,
           price: item.price,
+          currency: item.currency,
           link: item.link
         });
       
@@ -590,7 +614,8 @@ export const useSupabase = () => {
         name: member.name,
         role: member.role,
         imageUrl: member.image_url,
-        bio: member.bio || ''
+        bio: member.bio || '',
+        side: member.role.toLowerCase().includes('bride') || member.role.toLowerCase().includes('maid') ? 'bride' : 'groom'
       }));
     } catch (err) {
       console.error('Error fetching wedding party:', err);

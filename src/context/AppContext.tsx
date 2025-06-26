@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
+import { isSupabaseReady } from '../lib/supabase';
 import { applyTheme, getThemeById } from '../utils/themes';
+import { initializeData, saveData } from '../utils/storage';
 import { 
   Settings, 
   Guest, 
@@ -15,18 +17,17 @@ import {
   AppState
 } from '../types';
 import { toast } from 'react-toastify';
-import { getThemeById, applyTheme } from '../utils/themes';
 
 const defaultSettings: Settings = {
   coupleNames: "Bonaventure & Joy",
-eventDate: "2024-06-15T11:00",
-venue: "Grand Ballroom, Royal Hotel",
-maxSeats: 300,
-seatsPerTable: 10,
-welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-welcomeImages: [],
-backgroundImages: [],
-theme: "classic-rose"
+  eventDate: "2024-06-15T11:00",
+  venue: "Grand Ballroom, Royal Hotel",
+  maxSeats: 300,
+  seatsPerTable: 10,
+  welcomeImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  welcomeImages: [],
+  backgroundImages: [],
+  theme: "classic-rose"
 };
 
 const defaultPaymentDetails: PaymentDetails = {
@@ -110,70 +111,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, setState] = useState<AppState>(initialState);
   const supabase = useSupabase();
 
-  // Load all data from Supabase
+  // Load all data from Supabase or localStorage
   const refreshData = async () => {
     try {
-      supabase.setLoading(true);
-      
-      const [
-        settings,
-        guests,
-        gallery,
-        foodMenu,
-        drinkMenu,
-        asoebiItems,
-        registryItems,
-        paymentDetails,
-        weddingParty
-      ] = await Promise.all([
-        supabase.getSettings(),
-        supabase.getGuests(),
-        supabase.getGallery(),
-        supabase.getFoodMenu(),
-        supabase.getDrinkMenu(),
-        supabase.getAsoebiItems(),
-        supabase.getRegistryItems(),
-        supabase.getPaymentDetails(),
-        supabase.getWeddingParty()
-      ]);
+      if (isSupabaseReady) {
+        supabase.setLoading(true);
+        
+        const [
+          settings,
+          guests,
+          gallery,
+          foodMenu,
+          drinkMenu,
+          asoebiItems,
+          registryItems,
+          paymentDetails,
+          weddingParty
+        ] = await Promise.all([
+          supabase.getSettings(),
+          supabase.getGuests(),
+          supabase.getGallery(),
+          supabase.getFoodMenu(),
+          supabase.getDrinkMenu(),
+          supabase.getAsoebiItems(),
+          supabase.getRegistryItems(),
+          supabase.getPaymentDetails(),
+          supabase.getWeddingParty()
+        ]);
 
-      // Generate seats based on max seats
-      const maxSeats = settings?.maxSeats || 300;
-      const seats: Record<number, Seat> = {};
-      for (let i = 1; i <= maxSeats; i++) {
-        const guestCode = Object.keys(guests).find(code => guests[code].seatNumber === i);
-        seats[i] = {
-          taken: !!guestCode,
-          guestCode: guestCode || null
-        };
+        // Generate seats based on max seats
+        const maxSeats = settings?.maxSeats || 300;
+        const seats: Record<number, Seat> = {};
+        for (let i = 1; i <= maxSeats; i++) {
+          const guestCode = Object.keys(guests).find(code => guests[code].seatNumber === i);
+          seats[i] = {
+            taken: !!guestCode,
+            guestCode: guestCode || null
+          };
+        }
+
+        const finalSettings = settings || defaultSettings;
+        
+        // Apply theme
+        const currentTheme = getThemeById(finalSettings.theme || 'classic-rose');
+        applyTheme(currentTheme);
+
+        setState({
+          settings: finalSettings,
+          gallery: gallery || [],
+          foodMenu: foodMenu || [],
+          drinkMenu: drinkMenu || [],
+          asoebiItems: asoebiItems || [],
+          registryItems: registryItems || [],
+          paymentDetails: paymentDetails || defaultPaymentDetails,
+          guests: guests || { 'ADMIN': { name: 'Admin', seatNumber: null, arrived: false, mealServed: false, drinkServed: false } },
+          seats,
+          accessCodes: Object.keys(guests || { 'ADMIN': {} }),
+          currentUser: null,
+          weddingParty: weddingParty || [],
+          currentTheme
+        });
+      } else {
+        // Fallback to localStorage when Supabase is not configured
+        console.log('Using localStorage fallback mode');
+        const localData = initializeData(initialState);
+        setState(localData);
+        
+        // Apply theme from local data
+        const currentTheme = getThemeById(localData.settings.theme || 'classic-rose');
+        applyTheme(currentTheme);
       }
-
-      const finalSettings = settings || defaultSettings;
-      
-      // Apply theme
-      const currentTheme = getThemeById(finalSettings.theme || 'classic-rose');
-      applyTheme(currentTheme);
-
-      setState({
-        settings: finalSettings,
-        gallery: gallery || [],
-        foodMenu: foodMenu || [],
-        drinkMenu: drinkMenu || [],
-        asoebiItems: asoebiItems || [],
-        registryItems: registryItems || [],
-        paymentDetails: paymentDetails || defaultPaymentDetails,
-        guests: guests || { 'ADMIN': { name: 'Admin', seatNumber: null, arrived: false, mealServed: false, drinkServed: false } },
-        seats,
-        accessCodes: Object.keys(guests || { 'ADMIN': {} }),
-        currentUser: null,
-        weddingParty: weddingParty || [],
-        currentTheme
-      });
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load data from database');
+      
+      // Fallback to localStorage on error
+      console.log('Falling back to localStorage due to error');
+      const localData = initializeData(initialState);
+      setState(localData);
+      
+      if (isSupabaseReady) {
+        toast.error('Failed to load data from database, using local storage');
+      }
     } finally {
-      supabase.setLoading(false);
+      if (isSupabaseReady) {
+        supabase.setLoading(false);
+      }
     }
   };
 
@@ -229,21 +251,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       newCodes.push(code);
     }
     
-    // Add guests to Supabase
-    newCodes.forEach(async (code) => {
-      await supabase.addGuest(code, `Guest ${code}`);
-    });
-    
-    // Refresh data to get updated guest list
-    setTimeout(() => refreshData(), 1000);
+    // Add guests to Supabase if available, otherwise localStorage
+    if (isSupabaseReady) {
+      newCodes.forEach(async (code) => {
+        await supabase.addGuest(code, `Guest ${code}`);
+      });
+      
+      // Refresh data to get updated guest list
+      setTimeout(() => refreshData(), 1000);
+    } else {
+      // Add to localStorage
+      setState(prev => {
+        const updatedGuests = { ...prev.guests };
+        const updatedAccessCodes = [...prev.accessCodes];
+        
+        newCodes.forEach(code => {
+          updatedGuests[code] = {
+            name: `Guest ${code}`,
+            seatNumber: null,
+            arrived: false,
+            mealServed: false,
+            drinkServed: false,
+            category: 'regular'
+          };
+          updatedAccessCodes.push(code);
+        });
+        
+        const newState = {
+          ...prev,
+          guests: updatedGuests,
+          accessCodes: updatedAccessCodes
+        };
+        
+        saveData(newState);
+        return newState;
+      });
+    }
     
     return newCodes;
   };
 
   const assignSeat = (code: string, seatNumber: number): boolean => {
     if (!state.seats[seatNumber] || !state.seats[seatNumber].taken) {
-      // Update guest in Supabase
-      supabase.updateGuest(code, { seatNumber });
+      // Update guest in Supabase if available
+      if (isSupabaseReady) {
+        supabase.updateGuest(code, { seatNumber });
+      }
       
       setState(prev => {
         const updatedSeats = { ...prev.seats };
@@ -272,11 +325,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         }
         
-        return {
+        const newState = {
           ...prev,
           seats: updatedSeats,
           guests: updatedGuests
         };
+        
+        if (!isSupabaseReady) {
+          saveData(newState);
+        }
+        
+        return newState;
       });
       
       return true;
@@ -285,7 +344,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const confirmArrival = (code: string) => {
-    supabase.updateGuest(code, { arrived: true });
+    if (isSupabaseReady) {
+      supabase.updateGuest(code, { arrived: true });
+    }
     
     setState(prev => {
       const updatedGuests = { ...prev.guests };
@@ -297,15 +358,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       }
       
-      return {
+      const newState = {
         ...prev,
         guests: updatedGuests
       };
+      
+      if (!isSupabaseReady) {
+        saveData(newState);
+      }
+      
+      return newState;
     });
   };
 
   const updateGuestFood = (code: string, foodName: string) => {
-    supabase.updateGuest(code, { selectedFood: foodName });
+    if (isSupabaseReady) {
+      supabase.updateGuest(code, { selectedFood: foodName });
+    }
     
     setState(prev => {
       const updatedGuests = { ...prev.guests };
@@ -317,15 +386,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       }
       
-      return {
+      const newState = {
         ...prev,
         guests: updatedGuests
       };
+      
+      if (!isSupabaseReady) {
+        saveData(newState);
+      }
+      
+      return newState;
     });
   };
 
   const updateGuestDrink = (code: string, drinkName: string) => {
-    supabase.updateGuest(code, { selectedDrink: drinkName });
+    if (isSupabaseReady) {
+      supabase.updateGuest(code, { selectedDrink: drinkName });
+    }
     
     setState(prev => {
       const updatedGuests = { ...prev.guests };
@@ -337,16 +414,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       }
       
-      return {
+      const newState = {
         ...prev,
         guests: updatedGuests
       };
+      
+      if (!isSupabaseReady) {
+        saveData(newState);
+      }
+      
+      return newState;
     });
   };
 
   const updateSettings = async (newSettings: Partial<Settings>) => {
-    const success = await supabase.updateSettings(newSettings);
-    if (success) {
+    if (isSupabaseReady) {
+      const success = await supabase.updateSettings(newSettings);
+      if (success) {
+        setState(prev => {
+          const updatedSettings = {
+            ...prev.settings,
+            ...newSettings
+          };
+          
+          // Apply theme if it was updated
+          if (newSettings.theme) {
+            const newTheme = getThemeById(newSettings.theme);
+            applyTheme(newTheme);
+            return {
+              ...prev,
+              settings: updatedSettings,
+              currentTheme: newTheme
+            };
+          }
+          
+          return {
+            ...prev,
+            settings: updatedSettings
+          };
+        });
+      }
+    } else {
       setState(prev => {
         const updatedSettings = {
           ...prev.settings,
@@ -354,140 +462,282 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         
         // Apply theme if it was updated
+        let newTheme = prev.currentTheme;
         if (newSettings.theme) {
-          const newTheme = getThemeById(newSettings.theme);
+          newTheme = getThemeById(newSettings.theme);
           applyTheme(newTheme);
-          return {
-            ...prev,
-            settings: updatedSettings,
-            currentTheme: newTheme
-          };
         }
         
-        return {
+        const newState = {
           ...prev,
-          settings: updatedSettings
+          settings: updatedSettings,
+          currentTheme: newTheme
         };
+        
+        saveData(newState);
+        return newState;
       });
     }
   };
 
   const addGalleryPhoto = async (photo: PhotoItem) => {
-    const success = await supabase.addGalleryPhoto(photo);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        gallery: [...prev.gallery, photo]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addGalleryPhoto(photo);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          gallery: [...prev.gallery, photo]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          gallery: [...prev.gallery, photo]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeGalleryPhoto = async (index: number) => {
-    const success = await supabase.removeGalleryPhoto(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        gallery: prev.gallery.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeGalleryPhoto(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          gallery: prev.gallery.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          gallery: prev.gallery.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const addFoodItem = async (item: FoodItem) => {
-    const success = await supabase.addFoodItem(item);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        foodMenu: [...prev.foodMenu, item]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addFoodItem(item);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          foodMenu: [...prev.foodMenu, item]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          foodMenu: [...prev.foodMenu, item]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeFoodItem = async (index: number) => {
-    const success = await supabase.removeFoodItem(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        foodMenu: prev.foodMenu.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeFoodItem(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          foodMenu: prev.foodMenu.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          foodMenu: prev.foodMenu.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const addDrinkItem = async (item: DrinkItem) => {
-    const success = await supabase.addDrinkItem(item);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        drinkMenu: [...prev.drinkMenu, item]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addDrinkItem(item);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          drinkMenu: [...prev.drinkMenu, item]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          drinkMenu: [...prev.drinkMenu, item]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeDrinkItem = async (index: number) => {
-    const success = await supabase.removeDrinkItem(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        drinkMenu: prev.drinkMenu.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeDrinkItem(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          drinkMenu: prev.drinkMenu.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          drinkMenu: prev.drinkMenu.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const addAsoebiItem = async (item: AsoebiItem) => {
-    const success = await supabase.addAsoebiItem(item);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        asoebiItems: [...prev.asoebiItems, item]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addAsoebiItem(item);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          asoebiItems: [...prev.asoebiItems, item]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          asoebiItems: [...prev.asoebiItems, item]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeAsoebiItem = async (index: number) => {
-    const success = await supabase.removeAsoebiItem(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        asoebiItems: prev.asoebiItems.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeAsoebiItem(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          asoebiItems: prev.asoebiItems.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          asoebiItems: prev.asoebiItems.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const addRegistryItem = async (item: RegistryItem) => {
-    const success = await supabase.addRegistryItem(item);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        registryItems: [...prev.registryItems, item]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addRegistryItem(item);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          registryItems: [...prev.registryItems, item]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          registryItems: [...prev.registryItems, item]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeRegistryItem = async (index: number) => {
-    const success = await supabase.removeRegistryItem(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        registryItems: prev.registryItems.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeRegistryItem(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          registryItems: prev.registryItems.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          registryItems: prev.registryItems.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const updatePaymentDetails = async (details: PaymentDetails) => {
-    const success = await supabase.updatePaymentDetails(details);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        paymentDetails: {
-          ...prev.paymentDetails,
-          ...details
-        }
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.updatePaymentDetails(details);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          paymentDetails: {
+            ...prev.paymentDetails,
+            ...details
+          }
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          paymentDetails: {
+            ...prev.paymentDetails,
+            ...details
+          }
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const updateGuestDetails = async (code: string, updates: Partial<Guest>) => {
-    const success = await supabase.updateGuest(code, updates);
-    if (success) {
+    if (isSupabaseReady) {
+      const success = await supabase.updateGuest(code, updates);
+      if (success) {
+        setState(prev => {
+          const updatedGuests = { ...prev.guests };
+          
+          if (updatedGuests[code]) {
+            updatedGuests[code] = {
+              ...updatedGuests[code],
+              ...updates
+            };
+          }
+          
+          return {
+            ...prev,
+            guests: updatedGuests
+          };
+        });
+      }
+    } else {
       setState(prev => {
         const updatedGuests = { ...prev.guests };
         
@@ -498,31 +748,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         }
         
-        return {
+        const newState = {
           ...prev,
           guests: updatedGuests
         };
+        
+        saveData(newState);
+        return newState;
       });
     }
   };
 
   const addWeddingPartyMember = async (member: WeddingPartyMember) => {
-    const success = await supabase.addWeddingPartyMember(member);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        weddingParty: [...prev.weddingParty, member]
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.addWeddingPartyMember(member);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          weddingParty: [...prev.weddingParty, member]
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          weddingParty: [...prev.weddingParty, member]
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 
   const removeWeddingPartyMember = async (index: number) => {
-    const success = await supabase.removeWeddingPartyMember(index);
-    if (success) {
-      setState(prev => ({
-        ...prev,
-        weddingParty: prev.weddingParty.filter((_, i) => i !== index)
-      }));
+    if (isSupabaseReady) {
+      const success = await supabase.removeWeddingPartyMember(index);
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          weddingParty: prev.weddingParty.filter((_, i) => i !== index)
+        }));
+      }
+    } else {
+      setState(prev => {
+        const newState = {
+          ...prev,
+          weddingParty: prev.weddingParty.filter((_, i) => i !== index)
+        };
+        saveData(newState);
+        return newState;
+      });
     }
   };
 

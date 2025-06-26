@@ -17,7 +17,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
       {photos.map((photo, index) => (
         <div 
           key={index} 
-          className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
+          className="bg-theme-card-bg rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
         >
           <div className="h-48 overflow-hidden">
             <img 
@@ -27,7 +27,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             />
           </div>
           <div className="p-4">
-            <h3 className="font-semibold mb-2 text-gray-800">{photo.title}</h3>
+            <h3 className="font-semibold mb-2 text-theme-text">{photo.title}</h3>
             
             {isAdmin && onDelete && (
               <button 
